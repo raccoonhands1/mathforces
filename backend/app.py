@@ -16,6 +16,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 ai_parser = OpenAIParser()
 games = {}
 waiting_list = []
+sidUsername = {}
 
 class Game:
     def __init__(self, players):
@@ -24,7 +25,7 @@ class Game:
         self.game_id = id(self)  # unique identifier for the game
 
     def add_score(self, player, score):
-        self.scores[player] += score
+        self.scores[player[sidUsername[player]]] += score
         self.broadcast_scores()
 
     def broadcast_scores(self):
@@ -64,6 +65,12 @@ def handle_connect():
     print('User connected:', request.sid)
     waiting_list.append(request.sid)
     create_game()
+
+@socketio.on('register')
+def handle_register(data):
+    print('Handle registration:', request.sid)
+    username = data['username']
+    sidUsername[request.sid] = username
 
 @socketio.on('disconnect')
 def handle_disconnect():
