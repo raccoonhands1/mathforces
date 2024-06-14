@@ -35,11 +35,14 @@ def create_game():
         for player in new_game.players:
             join_room(player)
             waiting_list.remove(player)
-            emit('game_started', {'game_id': new_game.game_id}, room=player)
-            question_index = random.randrange(len(problems))
-            emit('new_question', {'game_id': new_game.game_id, 'question': {'question_id': question_index, 'question': problems[question_index]['problem']}}, room=player)
+            emit('game_started', {'game_id': new_game.game_id, 'player_id': player}, room=player)
+            send_question(player)
         return new_game
     return None
+
+def send_question(player):
+    question_index = random.randrange(len(problems))
+    emit('new_question', {'question': {'question_id': question_index, 'question': problems[question_index]['problem']}}, room=player)
 
 # REST API Route
 @app.route('/signup', methods=['POST'])
@@ -69,15 +72,23 @@ def handle_disconnect():
             if not game.players:
                 del games[game_id]  # Remove game if no players left
 
-@socketio.on('recieve_answer')
-def handle_recieve_score(data):
-    game_id = data['game_id']
-    question_id = data['question_id']
-    answer = data['answer']
-    if game_id in games:
-        result = ai_parser.evaluate_solution(answer, problems[question_id])
-        if result.rating > 50:
-            games[game_id].add_score(request.sid, 1)
+@socketio.on('receive_answer')
+def handle_receive_score(data):
+    try:
+        game_id = data['game_id']
+        player_id = data['player_id']
+        question_id = data['question_id']
+        answer = data['answer']
+        if game_id in games and question_id < len(problems):
+            result = ai_parser.evaluate_solution(answer, problems[question_id])
+            if result and result.rating > 50:
+                games[game_id].add_score(request.sid, 1)
+        else:
+            emit('error', {'message': 'Invalid game or question ID'})
+    except Exception as e:
+        print(f"Error handling the received answer: {e}")
+        emit('error', {'message': 'Failed to process the answer'})
+    send_question(player_id)
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)
