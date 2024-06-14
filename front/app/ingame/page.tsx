@@ -63,7 +63,7 @@ const Page = () => {
 
   return (
     <div className="relative flex items-center justify-center h-screen">
-      <Link className="absolute top-10 left-10 button" href="/">
+      <Link className="absolute top-10 left-10 button" href="/" className="absolute top-10 left-10 py-2 px-4 border border-gray-300 rounded text-gray-700 hover:border-red-500 hover:text-red-500">
         quit
       </Link>
       <div className="flex flex-col items-center space-y-6 w-full px-4">
@@ -91,7 +91,7 @@ const Page = () => {
             }}
           />
         </div>
-        <div className="button flex-none mt-4">submit</div>
+        <div className="button flex-none mt-4 bg-black border border-gray-300 rounded text-gray-700 hover:border-green-500 hover:text-green-500">submit</div>
       </div>
       <LeaderBoard classname="absolute top-20 right-10 pr-20 bg-zinc-950 rounded-md hind-siliguri-regular" />
     </div>
