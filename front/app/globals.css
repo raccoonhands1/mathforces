@@ -27,5 +27,5 @@ body {
 }
 
 .button {
-  @apply bg-white border-black rounded-sm;
+  @apply bg-white border-black rounded-sm px-2 py-1 text-black;
 }
