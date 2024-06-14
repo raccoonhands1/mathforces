@@ -73,6 +73,8 @@ const Page = () => {
     if (socket) {
       socket.on("connect", () => {
         console.log("Connected to server");
+
+        socket.emit("register", { username: "YourUsernameHere" });
       });
 
       socket.on("score_update", (data) => {
@@ -103,7 +105,7 @@ const Page = () => {
   const sendScore = () => {
     const score = Math.floor(Math.random() * 100);
     console.log("sending score", score);
-    socket?.emit("send_score", { score, game_id: gameId });
+    socket?.emit("receive_answer", { score, game_id: gameId });
   };
 
   return (
