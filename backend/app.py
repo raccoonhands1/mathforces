@@ -1,10 +1,15 @@
+import json
+import random
+from collections import defaultdict
+
+from ai import OpenAIParser
+from problems import problems
 from flask import Flask, jsonify, request
 from flask_socketio import SocketIO, emit, join_room, leave_room
-from collections import defaultdict
-import json
 
 app = Flask(__name__)
 socketio = SocketIO(app)
+ai_parser = OpenAIParser()
 games = {}
 waiting_list = []
 
@@ -31,9 +36,10 @@ def create_game():
             join_room(player)
             waiting_list.remove(player)
             emit('game_started', {'game_id': new_game.game_id}, room=player)
+            question_index = random.randrange(len(problems))
+            emit('new_question', {'game_id': new_game.game_id, 'question': {'question_id': question_index, 'question': problems[question_index]['problem']}}, room=player)
         return new_game
     return None
-
 
 # REST API Route
 @app.route('/signup', methods=['POST'])
@@ -63,12 +69,15 @@ def handle_disconnect():
             if not game.players:
                 del games[game_id]  # Remove game if no players left
 
-@socketio.on('send_score')
-def handle_send_score(data):
-    score = data['score']
+@socketio.on('recieve_answer')
+def handle_recieve_score(data):
     game_id = data['game_id']
+    question_id = data['question_id']
+    answer = data['answer']
     if game_id in games:
-        games[game_id].add_score(request.sid, score)
+        result = ai_parser.evaluate_solution(answer, problems[question_id])
+        if result.rating > 50:
+            games[game_id].add_score(request.sid, 1)
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)
