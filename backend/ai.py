@@ -5,7 +5,7 @@ import re
 class OpenAIParser():
     def __init__(self) -> None:
         self.client = openai.OpenAI(
-            api_key = "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"
+            api_key = ""
         )
     
     def query_gpt_4_turbo(self, query):
