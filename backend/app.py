@@ -1,10 +1,12 @@
 from flask import Flask, jsonify, request
 from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask_cors import CORS
 from collections import defaultdict
 import json
 
 app = Flask(__name__)
-socketio = SocketIO(app)
+CORS(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
 games = {}
 waiting_list = []
 
@@ -65,9 +67,11 @@ def handle_disconnect():
 
 @socketio.on('send_score')
 def handle_send_score(data):
+    print("send score received")
     score = data['score']
     game_id = data['game_id']
     if game_id in games:
+        print("emitting to ", game_id)
         games[game_id].add_score(request.sid, score)
 
 if __name__ == '__main__':
