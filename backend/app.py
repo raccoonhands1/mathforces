@@ -1,3 +1,9 @@
+import json
+import random
+from collections import defaultdict
+
+from ai import OpenAIParser
+from problems import problems
 from flask import Flask, jsonify, request
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_cors import CORS
@@ -7,6 +13,7 @@ import json
 app = Flask(__name__)
 CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
+ai_parser = OpenAIParser()
 games = {}
 waiting_list = []
 
@@ -32,10 +39,14 @@ def create_game():
         for player in new_game.players:
             join_room(player)
             waiting_list.remove(player)
-            emit('game_started', {'game_id': new_game.game_id}, room=player)
+            emit('game_started', {'game_id': new_game.game_id, 'player_id': player}, room=player)
+            send_question(player)
         return new_game
     return None
 
+def send_question(player):
+    question_index = random.randrange(len(problems))
+    emit('new_question', {'question': {'question_id': question_index, 'question': problems[question_index]['problem']}}, room=player)
 
 # REST API Route
 @app.route('/signup', methods=['POST'])
@@ -65,14 +76,23 @@ def handle_disconnect():
             if not game.players:
                 del games[game_id]  # Remove game if no players left
 
-@socketio.on('send_score')
-def handle_send_score(data):
-    print("send score received")
-    score = data['score']
-    game_id = data['game_id']
-    if game_id in games:
-        print("emitting to ", game_id)
-        games[game_id].add_score(request.sid, score)
+@socketio.on('receive_answer')
+def handle_receive_score(data):
+    try:
+        game_id = data['game_id']
+        player_id = data['player_id']
+        question_id = data['question_id']
+        answer = data['answer']
+        if game_id in games and question_id < len(problems):
+            result = ai_parser.evaluate_solution(answer, problems[question_id])
+            if result and result.rating > 50:
+                games[game_id].add_score(request.sid, 1)
+        else:
+            emit('error', {'message': 'Invalid game or question ID'})
+    except Exception as e:
+        print(f"Error handling the received answer: {e}")
+        emit('error', {'message': 'Failed to process the answer'})
+    send_question(player_id)
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)
