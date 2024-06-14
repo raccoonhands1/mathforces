@@ -39,7 +39,7 @@ def create_game():
         for player in new_game.players:
             join_room(player)
             waiting_list.remove(player)
-            emit('game_started', {'game_id': new_game.game_id, 'player_id': player}, room=player)
+            emit('game_started', {'game_id': new_game.game_id}, room=player)
             send_question(player)
         return new_game
     return None
@@ -80,7 +80,6 @@ def handle_disconnect():
 def handle_receive_score(data):
     try:
         game_id = data['game_id']
-        player_id = data['player_id']
         question_id = data['question_id']
         answer = data['answer']
         if game_id in games and question_id < len(problems):
@@ -92,7 +91,7 @@ def handle_receive_score(data):
     except Exception as e:
         print(f"Error handling the received answer: {e}")
         emit('error', {'message': 'Failed to process the answer'})
-    send_question(player_id)
+    send_question(request.sid)
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)
