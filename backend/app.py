@@ -30,6 +30,7 @@ def create_game():
         for player in new_game.players:
             join_room(player)
             waiting_list.remove(player)
+            emit('game_started', {'game_id': new_game.game_id}, room=player)
         return new_game
     return None
 
