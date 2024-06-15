@@ -1,11 +1,11 @@
 "use client";
 import "katex/dist/katex.min.css";
 import Latex from "react-latex-next";
-import { addStyles, EditableMathField } from "react-mathquill";
+// import { addStyles, EditableMathField } from "react-mathquill";
 
 // inserts the required css to the <head> block.
 // you can skip this, if you want to do that by yourself.
-addStyles();
+// addStyles();
 
 import useSocket from "@/hooks/useSocket";
 import Link from "next/link";
@@ -204,7 +204,7 @@ const Page = () => {
         </textarea>
         <div
           onClick={sendScore}
-          className="button inline-block flex-none mt-4 bg-black hover:bg-black border border-gray-300 rounded text-gray-700 hover:border-green-500 hover:text-green-500"
+          className="button w-[100px] text-center flex-none mt-4 bg-black hover:bg-black border border-gray-300 rounded text-gray-700 hover:border-green-500 hover:text-green-500"
         >
           submit
         </div>
