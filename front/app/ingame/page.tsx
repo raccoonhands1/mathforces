@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "@/provider/user.provider";
+import Loader from "@/components/Loader";
 
 interface User {
   username: string;
@@ -27,8 +28,8 @@ const LeaderBoard = ({
   users: User[];
   classname?: string;
 }) => {
+  const { user } = useUser();
   const maxScore = users[0]?.score;
-  console.log(users, "users");
   return (
     <div className={classname}>
       <h1>Leaderboard</h1>
@@ -48,7 +49,7 @@ const LeaderBoard = ({
                 alignItems: "center",
                 padding: "10px",
                 margin: "5px 0",
-                backgroundColor: "lightblue",
+                backgroundColor: "rgba(32, 32, 32, .5)",
                 borderRadius: "5px",
               }}
             >
@@ -60,7 +61,10 @@ const LeaderBoard = ({
                   transition={{ duration: 0.5 }}
                   style={{
                     height: "20px",
-                    backgroundColor: "blue",
+                    backgroundColor:
+                      username === user?.username
+                        ? "rgba(232, 66, 66, .8)"
+                        : "rgba(49, 40, 255, 0.8)",
                   }}
                 />
               </div>
@@ -76,11 +80,8 @@ const LeaderBoard = ({
 const Page = () => {
   const [latex, setLatex] = useState("");
   const { user } = useUser();
-  const renderPlaceholder = (text: string) => (
-    <div className="absolute inset-0 flex items-center justify-center text-gray-400 pointer-events-none">
-      {text}
-    </div>
-  );
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [timeLeft, setTimeLeft] = useState(100);
   const socket = useSocket("http://localhost:5000");
   const [scores, setScores] = useState<User[]>([]);
   const [gameId, setGameId] = useState();
@@ -88,6 +89,7 @@ const Page = () => {
     prompt: string;
     question_id: number;
   } | null>(null);
+  const [gameStarted, setGameStarted] = useState(false);
 
   useEffect(() => {
     if (socket) {
@@ -127,6 +129,23 @@ const Page = () => {
     }
   }, [socket]);
 
+  useEffect(() => {
+    if (!gameStarted && question) {
+      setGameStarted(true);
+      setStartTime(Date.now());
+    }
+    if (gameStarted && question) {
+      const intervalId = setInterval(() => {
+        if (startTime !== null) {
+          const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+          setTimeLeft(100 - elapsedTime);
+        }
+      }, 100);
+
+      return () => clearInterval(intervalId);
+    }
+  }, [question, gameStarted, timeLeft]);
+
   const sendScore = () => {
     const score = Math.floor(Math.random() * 100);
     console.log("sending answer", latex);
@@ -137,19 +156,39 @@ const Page = () => {
     });
   };
 
+  if (timeLeft <= 0) {
+    return (
+      <div>
+        Match is over
+        <Link className="button" href="/">
+          {" "}
+          Go back
+        </Link>
+      </div>
+    );
+  }
+
+  if (!question) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader text={"Waiting for other players"} />
+      </div>
+    );
+  }
+
   return (
-    <div className="relative flex items-center justify-center h-screen">
+    <div className="relative flex pt-40 justify-center h-screen">
       <Link
-        // className="absolute top-10 left-10 button"
         href="/"
-        className="absolute top-10 left-10 py-2 px-4 border border-gray-300 rounded text-gray-700 hover:border-red-500 hover:text-red-500"
+        className="absolute top-10 left-10 py-2 px-4 border border-gray-300 rounded text-slate-400 hover:border-red-500 hover:text-red-500"
       >
         quit
       </Link>
-      <div className="flex flex-col items-center space-y-6 w-full px-4">
-        <div className="relative w-60 h-24">{question?.prompt}</div>
-        <div className="relative w-60 h-24">
-          {/* {latex === "" && renderPlaceholder("Type Here")}
+      <div className="flex flex-col w-full px-10">
+        <div>{timeLeft} seconds left</div>
+        <div className="relative w-3/5 h-24">{question?.prompt}</div>
+
+        {/* {latex === "" && renderPlaceholder("Type Here")}
           <EditableMathField
             className="bg-black border-2 rounded-md w-full h-full p-4 text-center text-xl"
             latex={latex}
@@ -157,16 +196,15 @@ const Page = () => {
               setLatex(mathField.latex());
             }}
           /> */}
-          <textarea
-            className="text-black"
-            onChange={(e) => setLatex(e.target.value)}
-          >
-            {latex}
-          </textarea>
-        </div>
+        <textarea
+          className="text-black w-3/5 h-24"
+          onChange={(e) => setLatex(e.target.value)}
+        >
+          {latex}
+        </textarea>
         <div
           onClick={sendScore}
-          className="button flex-none mt-4 bg-black border border-gray-300 rounded text-gray-700 hover:border-green-500 hover:text-green-500"
+          className="button inline-block flex-none mt-4 bg-black hover:bg-black border border-gray-300 rounded text-gray-700 hover:border-green-500 hover:text-green-500"
         >
           submit
         </div>

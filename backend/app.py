@@ -47,6 +47,8 @@ def create_game():
 
 def send_question(player):
     question_index = random.randrange(len(problems))
+    print("\n\n")
+    print(sidUsername[player], "is player\n\n\n")
     emit('new_question', {'question': {'question_id': question_index, 'question': problems[question_index]['problem']}}, room=player)
 
 # REST API Route
@@ -63,14 +65,14 @@ def manage_data():
 @socketio.on('connect')
 def handle_connect():
     print('User connected:', request.sid)
-    waiting_list.append(request.sid)
-    create_game()
 
 @socketio.on('register')
 def handle_register(data):
     print('Handle registration:', request.sid)
     username = data['username']
     sidUsername[request.sid] = username
+    waiting_list.append(request.sid)
+    create_game()
 
 @socketio.on('disconnect')
 def handle_disconnect():

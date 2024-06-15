@@ -1,7 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap");
 
 :root {
   --foreground-rgb: 0, 0, 0;
@@ -28,7 +28,7 @@ body {
 }
 
 .button {
-  @apply bg-white border-black rounded-sm px-2 py-1 text-black;
+  @apply border-white rounded-md px-2 py-2 text-slate-400;
 }
 
 .hind-siliguri-light {
@@ -59,4 +59,28 @@ body {
   font-family: "Hind Siliguri", sans-serif;
   font-weight: 700;
   font-style: normal;
+}
+
+.loader {
+  @apply relative w-16 h-16;
+}
+
+.double-bounce1,
+.double-bounce2 {
+  @apply absolute top-0 left-0 w-full h-full bg-blue-500 rounded-full opacity-75;
+  animation: bounce 2s infinite ease-in-out;
+}
+
+.double-bounce2 {
+  animation-delay: -1s;
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1);
+  }
 }
