@@ -25,7 +25,7 @@ class Game:
         self.game_id = id(self)  # unique identifier for the game
 
     def add_score(self, player, score):
-        self.scores[player[sidUsername[player]]] += score
+        self.scores[sidUsername[player]] += score
         self.broadcast_scores()
 
     def broadcast_scores(self):
@@ -91,7 +91,8 @@ def handle_receive_score(data):
         answer = data['answer']
         if game_id in games and question_id < len(problems):
             result = ai_parser.evaluate_solution(answer, problems[question_id])
-            if result and result.rating > 50:
+            print(result)
+            if result and result['rating'] > 50:
                 games[game_id].add_score(request.sid, 1)
         else:
             emit('error', {'message': 'Invalid game or question ID'})
