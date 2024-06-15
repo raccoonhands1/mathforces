@@ -82,7 +82,7 @@ const Page = () => {
   const { user } = useUser();
   const [startTime, setStartTime] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState(100);
-  const socket = useSocket("http://localhost:5000");
+  const socket = useSocket("http://54.215.36.16/");
   const [scores, setScores] = useState<User[]>([]);
   const [gameId, setGameId] = useState();
   const [question, setQuestion] = useState<{
